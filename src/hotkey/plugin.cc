@@ -110,6 +110,25 @@ bool GlobalHotkeys::init ()
     return true;
 }
 
+static void delete_selected ()
+{
+    auto is_selected = [] (const PresetItem & item)
+        { return item.selected; };
+
+    int old_len = preset_list.len ();
+    preset_list.remove_if (is_selected);
+    int new_len = preset_list.len ();
+
+    if (old_len != new_len)
+    {
+        audgui_list_delete_rows (list, 0, old_len);
+        audgui_list_insert_rows (list, 0, new_len);
+
+        changes_made = true;
+        gtk_widget_set_sensitive (revert, true);
+    }
+}
+
 /* handle keys */
 gboolean handle_keyevent (EVENT event)
 {
@@ -280,6 +299,11 @@ gboolean handle_keyevent (EVENT event)
     if (event == EVENT_TOGGLE_STOP)
     {
         aud_toggle_bool (nullptr, "stop_after_current_song");
+        return true;
+    }
+
+    if (event == EVENT_REMOVE_TRACK)
+    {
         return true;
     }
 
